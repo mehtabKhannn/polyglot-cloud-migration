@@ -1,0 +1,51 @@
+version: '3.8'
+
+services:
+  frontend:
+    image: ${DOCKER_USERNAME}/polyglot-frontend:latest
+    ports:
+      - "3000:80"
+    deploy:
+      replicas: 2
+      update_config:
+        parallelism: 1
+        delay: 10s
+      restart_policy:
+        condition: on-failure
+    depends_on:
+      - backend
+
+  backend:
+    image: ${DOCKER_USERNAME}/polyglot-backend:latest
+    ports:
+      - "5000:8080"
+    environment:
+      - REDIS_CONNECTION=redis:6379
+    deploy:
+      replicas: 2
+      update_config:
+        parallelism: 1
+        delay: 10s
+    depends_on:
+      - redis
+
+  worker:
+    image: ${DOCKER_USERNAME}/polyglot-worker:latest
+    environment:
+      - REDIS_URL=redis://redis:6379/0
+    deploy:
+      replicas: 1
+    depends_on:
+      - redis
+
+  redis:
+    image: redis:alpine
+    ports:
+      - "6379:6379"
+    deploy:
+      replicas: 1
+    volumes:
+      - redis_data:/data
+
+volumes:
+  redis_data:

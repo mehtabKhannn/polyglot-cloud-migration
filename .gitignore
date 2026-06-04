@@ -1,0 +1,24 @@
+.env
+*.pem
+*.key
+terraform.tfstate
+terraform.tfstate.backup
+.terraform/
+terraform.tfvars
+
+# Node
+node_modules/
+dist/
+build/
+
+# .NET
+bin/
+obj/
+*.user
+
+# Python
+__pycache__/
+*.pyc
+venv/
+env/
+.pytest_cache/
