@@ -9,52 +9,67 @@ on:
       - main
 
 jobs:
-  test:
+  python-tests:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
+      - name: Checkout
         uses: actions/checkout@v4
 
       - name: Setup Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v4
         with:
           python-version: '3.12'
+
+      - name: Install dependencies
+        run: |
+          cd worker-python
+          pip install -r requirements.txt
+          pip install pytest flake8
+
+      - name: Run pytest
+        run: |
+          cd worker-python
+          pytest --tb=short
+
+      - name: Run flake8
+        run: |
+          cd worker-python
+          flake8 . --max-line-length=120 --exclude=__pycache__,.pytest_cache
+
+  frontend-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
 
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: '18'
 
-      - name: Python Tests
-        run: |
-          cd worker-python
-          pip install -r requirements.txt
-          pip install pytest
-          pytest --tb=short
-
-      - name: Python Linting
-        run: |
-          cd worker-python
-          pip install flake8
-          flake8 . --max-line-length=120 --exclude=__pycache__,.pytest_cache
-
-      - name: Frontend Tests
+      - name: Install dependencies
         run: |
           cd frontend-js
           npm install
+
+      - name: Run tests
+        run: |
+          cd frontend-js
           npm test -- --watchAll=false --passWithNoTests
 
-      - name: Frontend Linting
+      - name: Run lint
         run: |
           cd frontend-js
           npm run lint -- --max-warnings=100 || true
 
   build-and-push:
     runs-on: ubuntu-latest
-    needs: test
+    needs:
+      - python-tests
+      - frontend-tests
     if: github.ref == 'refs/heads/main'
     steps:
-      - name: Checkout code
+      - name: Checkout
         uses: actions/checkout@v4
 
       - name: Set up Docker Buildx
@@ -66,21 +81,21 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Build and push Frontend image
+      - name: Push Frontend image
         uses: docker/build-push-action@v6
         with:
           context: ./frontend-js
           push: true
           tags: ${{ secrets.DOCKER_USERNAME }}/polyglot-frontend:latest
 
-      - name: Build and push Backend image
+      - name: Push Backend image
         uses: docker/build-push-action@v6
         with:
           context: ./backend-dotnet
           push: true
           tags: ${{ secrets.DOCKER_USERNAME }}/polyglot-backend:latest
 
-      - name: Build and push Worker image
+      - name: Push Worker image
         uses: docker/build-push-action@v6
         with:
           context: ./worker-python
