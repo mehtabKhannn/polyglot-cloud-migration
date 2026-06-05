@@ -31,8 +31,8 @@ jobs:
 
     - name: Backend Tests
       run: |
-        cd backend-dotnet/BackendApi.Tests
-        dotnet test --verbosity normal
+        cd backend-dotnet
+        dotnet test BackendApi.sln --verbosity normal
 
     - name: Python Tests
       run: |
