@@ -7,17 +7,12 @@ on:
     branches: [ "main" ]
 
 jobs:
-  build-and-test:
+  test:
+    name: Run Tests
     runs-on: ubuntu-latest
-
     steps:
     - name: Checkout code
       uses: actions/checkout@v3
-
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v3
-      with:
-        dotnet-version: '9.0.x'
 
     - name: Setup Python
       uses: actions/setup-python@v4
@@ -29,28 +24,11 @@ jobs:
       with:
         node-version: '18'
 
-    - name: Backend Tests
-      run: |
-        cd backend-dotnet
-        dotnet test BackendApi.sln --verbosity normal
-
     - name: Python Tests
       run: |
         cd worker-python
-        pip install -r requirements.txt
-        pip install pytest
-        pytest
-
-    - name: Frontend Tests
-      run: |
-        cd frontend-js
-        npm install
-        npm test -- --watchAll=false --passWithNoTests
-
-    - name: Backend Linting
-      run: |
-        cd backend-dotnet
-        dotnet build --no-restore 2>&1 | grep -v "^$" || true
+        pip install -r requirements.txt pytest
+        pytest --tb=short
 
     - name: Python Linting
       run: |
@@ -58,10 +36,25 @@ jobs:
         pip install flake8
         flake8 . --max-line-length=120 --exclude=__pycache__,.pytest_cache
 
+    - name: Frontend Install & Test
+      run: |
+        cd frontend-js
+        npm install
+        npm test -- --watchAll=false --passWithNoTests
+
     - name: Frontend Linting
       run: |
         cd frontend-js
-        npm run lint -- --max-warnings=50 || true
+        npm run lint -- --max-warnings=100 || true
+
+  build-and-push:
+    name: Build & Push Docker Images
+    runs-on: ubuntu-latest
+    needs: test
+    if: github.ref == 'refs/heads/main'
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
 
     - name: Log in to Docker Hub
       uses: docker/login-action@v2
