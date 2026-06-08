@@ -4,8 +4,8 @@ pipeline {
     environment {
         DOCKER_USERNAME = credentials('docker-username')
         DOCKER_PASSWORD = credentials('docker-password')
-        AWS_EC2_IP = credentials('aws-ec2-ip')
-        SSH_KEY = credentials('aws-ssh-key')
+        AZURE_VM_IP = credentials('azure-vm-ip')
+        SSH_KEY = credentials('azure-ssh-key')
     }
 
     stages {
@@ -26,15 +26,15 @@ pipeline {
             }
         }
 
-        stage('Deploy to AWS EC2') {
+        stage('Deploy to Azure VM') {
             steps {
-                sshagent(['aws-ssh-key']) {
+                sshagent(['azure-ssh-key']) {
                     sh '''
                         # Copy production compose file to server
-                        scp -o StrictHostKeyChecking=no deploy/docker-compose.prod.yml ubuntu@${AWS_EC2_IP}:~/docker-compose.yml
+                        scp -o StrictHostKeyChecking=no deploy/docker-compose.prod.yml ubuntu@${AZURE_VM_IP}:~/docker-compose.yml
                         
                         # Execute deployment
-                        ssh -o StrictHostKeyChecking=no ubuntu@${AWS_EC2_IP} "
+                        ssh -o StrictHostKeyChecking=no ubuntu@${AZURE_VM_IP} "
                             export DOCKER_USERNAME=${DOCKER_USERNAME}
                             docker compose pull
                             docker compose up -d
@@ -48,8 +48,8 @@ pipeline {
             steps {
                 sleep 15
                 sh '''
-                    curl -f http://${AWS_EC2_IP}:3000 || exit 1
-                    curl -f http://${AWS_EC2_IP}:5000/api/status || exit 1
+                    curl -f http://${AZURE_VM_IP}:3000 || exit 1
+                    curl -f http://${AZURE_VM_IP}:5000/api/status || exit 1
                 '''
             }
         }

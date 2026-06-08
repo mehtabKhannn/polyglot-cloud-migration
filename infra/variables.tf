@@ -1,16 +1,16 @@
-variable "aws_region" {
-  description = "The AWS region to deploy in"
+variable "location" {
+  description = "The Azure region to deploy in"
   type        = string
-  default     = "us-east-1"
+  default     = "East US"
 }
 
-variable "instance_type" {
-  description = "The EC2 instance type"
+variable "vm_size" {
+  description = "The VM size"
   type        = string
-  default     = "t2.micro"
+  default     = "Standard_B1s"
 }
 
 variable "public_key" {
-  description = "The public SSH key to access the EC2 instance"
+  description = "The public SSH key to access the VM"
   type        = string
 }

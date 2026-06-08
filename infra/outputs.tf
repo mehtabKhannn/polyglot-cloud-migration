@@ -1,9 +1,9 @@
-output "instance_public_ip" {
-  description = "Public IP address of the EC2 instance"
-  value       = aws_instance.app_server.public_ip
+output "vm_public_ip" {
+  description = "Public IP address of the Virtual Machine"
+  value       = data.azurerm_public_ip.pip_data.ip_address
 }
 
-output "instance_public_dns" {
-  description = "Public DNS of the EC2 instance"
-  value       = aws_instance.app_server.public_dns
+output "vm_fqdn" {
+  description = "FQDN of the Virtual Machine"
+  value       = data.azurerm_public_ip.pip_data.fqdn
 }
