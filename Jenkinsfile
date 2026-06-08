@@ -15,17 +15,6 @@ pipeline {
             }
         }
 
-        stage('Pull Docker Images') {
-            steps {
-                sh '''
-                    echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
-                    docker pull $DOCKER_USERNAME/polyglot-frontend:latest
-                    docker pull $DOCKER_USERNAME/polyglot-backend:latest
-                    docker pull $DOCKER_USERNAME/polyglot-worker:latest
-                '''
-            }
-        }
-
         stage('Deploy to Azure VM') {
             steps {
                 sshagent(['azure-ssh-key']) {
